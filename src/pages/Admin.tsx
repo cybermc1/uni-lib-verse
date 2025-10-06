@@ -7,16 +7,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, UserCog, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Admin = () => {
   const { user, userRole } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   useEffect(() => {
     if (!user || (userRole !== 'librarian' && userRole !== 'admin')) {
@@ -24,6 +33,9 @@ const Admin = () => {
       return;
     }
     fetchPendingRequests();
+    if (userRole === 'admin') {
+      fetchUsers();
+    }
   }, [user, userRole, navigate]);
 
   const fetchPendingRequests = async () => {
@@ -45,6 +57,87 @@ const Admin = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*');
+
+      if (rolesError) throw rolesError;
+
+      const usersWithRoles = profilesData.map(profile => ({
+        ...profile,
+        roles: rolesData.filter(r => r.user_id === profile.id).map(r => r.role),
+      }));
+
+      setUsers(usersWithRoles);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch users',
+        variant: 'destructive',
+      });
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: newRole as any });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Role assigned successfully',
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to assign role',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveRole = async (userId: string, role: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role', role as any);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Role removed successfully',
+      });
+
+      fetchUsers();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to remove role',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -132,13 +225,21 @@ const Admin = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Librarian Admin Panel</h1>
+        <h1 className="text-3xl font-bold mb-8">
+          {userRole === 'admin' ? 'Admin Panel' : 'Librarian Panel'}
+        </h1>
 
         <Tabs defaultValue="pending">
           <TabsList>
             <TabsTrigger value="pending">
               Pending Requests ({pendingRequests.length})
             </TabsTrigger>
+            {userRole === 'admin' && (
+              <TabsTrigger value="users">
+                <UserCog className="h-4 w-4 mr-2" />
+                User Management
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="pending" className="space-y-4 mt-6">
@@ -189,6 +290,75 @@ const Admin = () => {
               ))
             )}
           </TabsContent>
+
+          {userRole === 'admin' && (
+            <TabsContent value="users" className="space-y-4 mt-6">
+              {usersLoading ? (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                </div>
+              ) : users.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground">No users found</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                users.map((userItem) => (
+                  <Card key={userItem.id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-xl mb-2">{userItem.full_name}</CardTitle>
+                          <p className="text-sm text-muted-foreground">{userItem.email}</p>
+                          {userItem.student_id && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Student ID: {userItem.student_id}
+                            </p>
+                          )}
+                        </div>
+                        <Shield className="h-5 w-5 text-primary" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium mb-2">Current Roles:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {userItem.roles.length > 0 ? (
+                            userItem.roles.map((role: string) => (
+                              <Badge key={role} variant="secondary" className="gap-2">
+                                {role}
+                                <button
+                                  onClick={() => handleRemoveRole(userItem.id, role)}
+                                  className="ml-1 hover:text-destructive"
+                                >
+                                  ×
+                                </button>
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No roles assigned</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Select onValueChange={(value) => handleRoleChange(userItem.id, value)}>
+                          <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Add role..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="student">Student</SelectItem>
+                            <SelectItem value="librarian">Librarian</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
