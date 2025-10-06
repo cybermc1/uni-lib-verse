@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { BookOpen, User, LogOut, LayoutDashboard, Shield } from 'lucide-react';
+import { BookOpen, User, LogOut, LayoutDashboard, Shield, BookCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,12 +30,20 @@ export function Navbar() {
             {user ? (
               <>
                 {(userRole === 'librarian' || userRole === 'admin') && (
-                  <Link to="/admin">
-                    <Button variant="outline" size="sm" className="bg-accent hover:bg-accent/90 text-white border-accent">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Admin Panel
-                    </Button>
-                  </Link>
+                  <>
+                    <Link to="/borrowings">
+                      <Button variant="outline" size="sm" className="bg-primary hover:bg-primary/90 text-white border-primary">
+                        <BookCheck className="h-4 w-4 mr-2" />
+                        Borrowings
+                      </Button>
+                    </Link>
+                    <Link to="/admin">
+                      <Button variant="outline" size="sm" className="bg-accent hover:bg-accent/90 text-white border-accent">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 
                 <DropdownMenu>
