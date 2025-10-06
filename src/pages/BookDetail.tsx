@@ -74,16 +74,14 @@ const BookDetail = () => {
       const { error } = await supabase.from('borrowing_records').insert({
         user_id: user.id,
         book_id: book.id,
-        status: book.requires_approval ? 'pending' : 'active',
+        status: 'pending',
       });
 
       if (error) throw error;
 
       toast({
         title: 'Success',
-        description: book.requires_approval 
-          ? 'Borrowing request submitted for librarian approval' 
-          : 'Book borrowed successfully',
+        description: 'Borrowing request submitted for librarian approval',
       });
       
       fetchBook();

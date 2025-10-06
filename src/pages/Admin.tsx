@@ -67,7 +67,7 @@ const Admin = () => {
 
       if (updateError) throw updateError;
 
-      const { error: bookError } = await supabase.rpc('decrement_available_copies', {
+      const { error: bookError } = await supabase.rpc('decrement_available_copies' as any, {
         book_id: bookId,
       });
 
