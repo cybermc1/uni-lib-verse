@@ -29,21 +29,22 @@ export function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                {(userRole === 'librarian' || userRole === 'admin') && (
-                  <>
-                    <Link to="/borrowings">
-                      <Button variant="outline" size="sm" className="bg-primary hover:bg-primary/90 text-white border-primary">
-                        <BookCheck className="h-4 w-4 mr-2" />
-                        Borrowings
-                      </Button>
-                    </Link>
-                    <Link to="/admin">
-                      <Button variant="outline" size="sm" className="bg-accent hover:bg-accent/90 text-white border-accent">
-                        <Shield className="h-4 w-4 mr-2" />
-                        Admin Panel
-                      </Button>
-                    </Link>
-                  </>
+                {userRole === 'admin' && (
+                  <Link to="/admin">
+                    <Button variant="outline" size="sm" className="bg-accent hover:bg-accent/90 text-white border-accent">
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Panel
+                    </Button>
+                  </Link>
+                )}
+                
+                {userRole === 'librarian' && (
+                  <Link to="/borrowings">
+                    <Button variant="outline" size="sm" className="bg-primary hover:bg-primary/90 text-white border-primary">
+                      <BookCheck className="h-4 w-4 mr-2" />
+                      Librarian Panel
+                    </Button>
+                  </Link>
                 )}
                 
                 <DropdownMenu>

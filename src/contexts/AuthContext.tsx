@@ -30,15 +30,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user role
+          // Fetch user roles and determine highest privilege
           setTimeout(async () => {
-            const { data: roleData } = await supabase
+            const { data: rolesData } = await supabase
               .from('user_roles')
               .select('role')
-              .eq('user_id', session.user.id)
-              .single();
+              .eq('user_id', session.user.id);
             
-            setUserRole(roleData?.role ?? 'student');
+            if (rolesData && rolesData.length > 0) {
+              const roles = rolesData.map(r => r.role);
+              // Set highest privilege role: admin > librarian > student
+              if (roles.includes('admin')) {
+                setUserRole('admin');
+              } else if (roles.includes('librarian')) {
+                setUserRole('librarian');
+              } else {
+                setUserRole(roles[0]);
+              }
+            } else {
+              setUserRole('student');
+            }
           }, 0);
         } else {
           setUserRole(null);
