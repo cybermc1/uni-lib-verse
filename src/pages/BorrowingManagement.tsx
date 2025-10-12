@@ -32,7 +32,7 @@ const BorrowingManagement = () => {
     try {
       let query = supabase
         .from('borrowing_records')
-        .select('*, books(*), profiles(*)')
+        .select('*, books(*), profiles:user_id(*)')
         .order('request_date', { ascending: false });
 
       if (activeTab !== 'all') {
