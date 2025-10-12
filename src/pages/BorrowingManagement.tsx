@@ -31,8 +31,8 @@ const BorrowingManagement = () => {
     setLoading(true);
     try {
       let query = supabase
-        .from('borrowing_records')
-        .select('*, books(*), profiles:user_id(*)')
+        .from('borrowing_records_with_details')
+        .select('*')
         .order('request_date', { ascending: false });
 
       if (activeTab !== 'all') {
@@ -222,11 +222,11 @@ const BorrowingManagement = () => {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-xl mb-2">{record.books.title}</CardTitle>
-                          <p className="text-sm text-muted-foreground">by {record.books.author}</p>
+                          <CardTitle className="text-xl mb-2">{record.book?.title}</CardTitle>
+                          <p className="text-sm text-muted-foreground">by {record.book?.author}</p>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Student: <span className="font-medium">{record.profiles.full_name}</span>
-                            {record.profiles.student_id && ` (${record.profiles.student_id})`}
+                            Student: <span className="font-medium">{record.profile?.full_name}</span>
+                            {record.profile?.student_id && ` (${record.profile.student_id})`}
                           </p>
                         </div>
                         {getStatusBadge(record.status, record.due_date)}
@@ -271,7 +271,7 @@ const BorrowingManagement = () => {
                         {record.status === 'pending' && (
                           <>
                             <Button
-                              onClick={() => handleApprove(record.id, record.book_id, record.books.max_borrow_days)}
+                              onClick={() => handleApprove(record.id, record.book_id, record.book?.max_borrow_days)}
                               className="bg-green-600 hover:bg-green-700"
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />

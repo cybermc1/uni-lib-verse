@@ -245,7 +245,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      borrowing_records_with_details: {
+        Row: {
+          approval_date: string | null
+          approved_by: string | null
+          book: Json | null
+          book_id: string | null
+          borrow_date: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string | null
+          notes: string | null
+          profile: Json | null
+          renewal_count: number | null
+          request_date: string | null
+          return_date: string | null
+          status: Database["public"]["Enums"]["borrowing_status"] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "borrowing_records_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       decrement_available_copies: {
