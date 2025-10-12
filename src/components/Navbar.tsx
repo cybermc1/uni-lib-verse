@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { BookOpen, User, LogOut, LayoutDashboard, Shield, BookCheck } from 'lucide-react';
+import { BookOpen, User, LogOut, LayoutDashboard, Shield, BookCheck, Library } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +61,12 @@ export function Navbar() {
                       <Link to="/dashboard" className="cursor-pointer">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-borrowings" className="cursor-pointer">
+                        <Library className="h-4 w-4 mr-2" />
+                        My Borrowings
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

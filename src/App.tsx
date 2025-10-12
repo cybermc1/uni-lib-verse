@@ -10,6 +10,7 @@ import BookDetail from "./pages/BookDetail";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import BorrowingManagement from "./pages/BorrowingManagement";
+import MyBorrowings from "./pages/MyBorrowings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/borrowings" element={<BorrowingManagement />} />
+            <Route path="/my-borrowings" element={<MyBorrowings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
