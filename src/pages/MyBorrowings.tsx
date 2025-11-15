@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +52,35 @@ const MyBorrowings = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReturn = async (recordId: string, bookId: string) => {
+    try {
+      const { error: updateError } = await supabase
+        .from('borrowing_records')
+        .update({
+          status: 'returned',
+          return_date: new Date().toISOString(),
+        })
+        .eq('id', recordId);
+
+      if (updateError) throw updateError;
+
+      await supabase.rpc('increment_available_copies', { book_id: bookId });
+
+      toast({
+        title: 'Success',
+        description: 'Book returned successfully',
+      });
+
+      fetchMyBorrowings();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to return book',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -164,6 +194,17 @@ const MyBorrowings = () => {
                       {isOverdue && (
                         <div className="text-sm text-destructive font-medium">
                           ⚠️ This book is overdue. Please return it as soon as possible.
+                        </div>
+                      )}
+
+                      {record.status === 'active' && (
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={() => handleReturn(record.id, record.book_id)}
+                            variant="default"
+                          >
+                            Return Book
+                          </Button>
                         </div>
                       )}
                     </CardContent>
