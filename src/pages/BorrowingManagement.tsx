@@ -224,10 +224,30 @@ const BorrowingManagement = () => {
                         <div className="flex-1">
                           <CardTitle className="text-xl mb-2">{record.book?.title}</CardTitle>
                           <p className="text-sm text-muted-foreground">by {record.book?.author}</p>
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Student: <span className="font-medium">{record.profile?.full_name}</span>
-                            {record.profile?.student_id && ` (${record.profile.student_id})`}
-                          </p>
+                          <div className="mt-3 space-y-1 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Borrower:</span>
+                              <span className="font-medium">{record.profile?.full_name}</span>
+                            </div>
+                            {record.profile?.student_id && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Student ID:</span>
+                                <span className="font-medium">{record.profile.student_id}</span>
+                              </div>
+                            )}
+                            {record.profile?.email && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Email:</span>
+                                <span className="font-medium">{record.profile.email}</span>
+                              </div>
+                            )}
+                            {record.profile?.phone && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Phone:</span>
+                                <span className="font-medium">{record.profile.phone}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         {getStatusBadge(record.status, record.due_date)}
                       </div>
