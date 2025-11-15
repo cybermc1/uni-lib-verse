@@ -7,6 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Loader2, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -18,6 +28,7 @@ const MyBorrowings = () => {
   const [borrowings, setBorrowings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active');
+  const [confirmReturn, setConfirmReturn] = useState<{ recordId: string; bookId: string; bookTitle: string } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -55,7 +66,9 @@ const MyBorrowings = () => {
     }
   };
 
-  const handleReturn = async (recordId: string, bookId: string) => {
+  const handleReturn = async () => {
+    if (!confirmReturn) return;
+
     try {
       const { error: updateError } = await supabase
         .from('borrowing_records')
@@ -63,17 +76,18 @@ const MyBorrowings = () => {
           status: 'returned',
           return_date: new Date().toISOString(),
         })
-        .eq('id', recordId);
+        .eq('id', confirmReturn.recordId);
 
       if (updateError) throw updateError;
 
-      await supabase.rpc('increment_available_copies', { book_id: bookId });
+      await supabase.rpc('increment_available_copies', { book_id: confirmReturn.bookId });
 
       toast({
         title: 'Success',
         description: 'Book returned successfully',
       });
 
+      setConfirmReturn(null);
       fetchMyBorrowings();
     } catch (error: any) {
       toast({
@@ -81,6 +95,7 @@ const MyBorrowings = () => {
         description: 'Failed to return book',
         variant: 'destructive',
       });
+      setConfirmReturn(null);
     }
   };
 
@@ -200,7 +215,11 @@ const MyBorrowings = () => {
                       {record.status === 'active' && (
                         <div className="flex justify-end">
                           <Button
-                            onClick={() => handleReturn(record.id, record.book_id)}
+                            onClick={() => setConfirmReturn({ 
+                              recordId: record.id, 
+                              bookId: record.book_id,
+                              bookTitle: record.book?.title 
+                            })}
                             variant="default"
                           >
                             Return Book
@@ -215,6 +234,23 @@ const MyBorrowings = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={!!confirmReturn} onOpenChange={(open) => !open && setConfirmReturn(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Book Return</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to return "{confirmReturn?.bookTitle}"? This action will mark the book as returned and make it available for other users.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReturn}>
+              Confirm Return
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
