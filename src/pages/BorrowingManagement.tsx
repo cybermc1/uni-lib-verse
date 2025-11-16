@@ -7,9 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle, XCircle, Loader2, RotateCcw, BookCheck } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, RotateCcw, BookCheck, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { ReviewDialog } from '@/components/ReviewDialog';
 
 const BorrowingManagement = () => {
   const { user, userRole } = useAuth();
@@ -18,6 +19,8 @@ const BorrowingManagement = () => {
   const [borrowings, setBorrowings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedBookForReview, setSelectedBookForReview] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     if (!user || (userRole !== 'librarian' && userRole !== 'admin')) {
@@ -315,6 +318,18 @@ const BorrowingManagement = () => {
                             Mark as Returned
                           </Button>
                         )}
+                        {record.status === 'returned' && (
+                          <Button
+                            onClick={() => {
+                              setSelectedBookForReview({ id: record.book_id, title: record.book?.title });
+                              setReviewDialogOpen(true);
+                            }}
+                            variant="outline"
+                          >
+                            <Star className="h-4 w-4 mr-2" />
+                            Review Book
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -324,6 +339,15 @@ const BorrowingManagement = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {selectedBookForReview && (
+        <ReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          bookId={selectedBookForReview.id}
+          bookTitle={selectedBookForReview.title}
+        />
+      )}
     </div>
   );
 };
