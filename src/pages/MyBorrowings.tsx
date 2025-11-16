@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2, BookOpen } from 'lucide-react';
+import { Loader2, BookOpen, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ReviewDialog } from '@/components/ReviewDialog';
@@ -56,7 +56,25 @@ const MyBorrowings = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setBorrowings(data || []);
+
+      // Fetch user's reviews for each book
+      const borrowingsWithReviews = await Promise.all(
+        (data || []).map(async (record) => {
+          const { data: reviewData } = await supabase
+            .from('reviews')
+            .select('rating, review_text')
+            .eq('book_id', record.book_id)
+            .eq('user_id', user?.id)
+            .maybeSingle();
+
+          return {
+            ...record,
+            userReview: reviewData,
+          };
+        })
+      );
+
+      setBorrowings(borrowingsWithReviews);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -206,6 +224,32 @@ const MyBorrowings = () => {
                         <div className="text-sm">
                           <p className="text-muted-foreground">Notes</p>
                           <p className="mt-1">{record.notes}</p>
+                        </div>
+                      )}
+
+                      {record.userReview && (
+                        <div className="pt-2 border-t">
+                          <p className="text-sm text-muted-foreground mb-2">Your Review</p>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <Star
+                                  key={star}
+                                  className={`w-4 h-4 ${
+                                    star <= record.userReview.rating
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-muted-foreground'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-medium">{record.userReview.rating}/5</span>
+                          </div>
+                          {record.userReview.review_text && (
+                            <p className="text-sm text-muted-foreground italic">
+                              "{record.userReview.review_text}"
+                            </p>
+                          )}
                         </div>
                       )}
 
