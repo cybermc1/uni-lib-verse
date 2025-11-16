@@ -20,6 +20,7 @@ import {
 import { Loader2, BookOpen } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { ReviewDialog } from '@/components/ReviewDialog';
 
 const MyBorrowings = () => {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ const MyBorrowings = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('active');
   const [confirmReturn, setConfirmReturn] = useState<{ recordId: string; bookId: string; bookTitle: string } | null>(null);
+  const [reviewDialog, setReviewDialog] = useState<{ bookId: string; bookTitle: string } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -88,6 +90,7 @@ const MyBorrowings = () => {
       });
 
       setConfirmReturn(null);
+      setReviewDialog({ bookId: confirmReturn.bookId, bookTitle: confirmReturn.bookTitle });
       fetchMyBorrowings();
     } catch (error: any) {
       toast({
@@ -251,6 +254,13 @@ const MyBorrowings = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ReviewDialog
+        open={!!reviewDialog}
+        onOpenChange={(open) => !open && setReviewDialog(null)}
+        bookId={reviewDialog?.bookId || ''}
+        bookTitle={reviewDialog?.bookTitle || ''}
+      />
     </div>
   );
 };
