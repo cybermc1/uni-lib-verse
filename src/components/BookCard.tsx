@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Eye, MapPin, FileText } from 'lucide-react';
+import { BookOpen, Eye, MapPin, FileText, Star } from 'lucide-react';
 
 interface Book {
   id: string;
@@ -16,6 +16,8 @@ interface Book {
   tags: string[];
   topics: string[];
   cover_image_url?: string;
+  reviewCount?: number;
+  averageRating?: number;
 }
 
 interface BookCardProps {
@@ -79,6 +81,26 @@ export function BookCard({ book }: BookCardProps) {
             {book.available_copies} of {book.total_copies}
           </span>
         </div>
+
+        {book.reviewCount !== undefined && book.reviewCount > 0 && (
+          <div className="flex items-center gap-2 pt-2 border-t">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`w-4 h-4 ${
+                    star <= Math.round(book.averageRating || 0)
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'text-muted-foreground'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {book.averageRating?.toFixed(1)} ({book.reviewCount} {book.reviewCount === 1 ? 'review' : 'reviews'})
+            </span>
+          </div>
+        )}
       </CardContent>
 
       <CardFooter className="p-4 pt-0">

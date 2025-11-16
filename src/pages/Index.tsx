@@ -21,14 +21,36 @@ const Index = () => {
   const fetchBooks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: booksData, error } = await supabase
         .from('books')
         .select('*')
         .order('title', { ascending: true })
         .limit(12);
 
       if (error) throw error;
-      setBooks(data || []);
+
+      // Fetch review statistics for each book
+      const booksWithReviews = await Promise.all(
+        (booksData || []).map(async (book) => {
+          const { data: reviewsData } = await supabase
+            .from('reviews')
+            .select('rating')
+            .eq('book_id', book.id);
+
+          const reviewCount = reviewsData?.length || 0;
+          const averageRating = reviewCount > 0
+            ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+            : 0;
+
+          return {
+            ...book,
+            reviewCount,
+            averageRating,
+          };
+        })
+      );
+
+      setBooks(booksWithReviews);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -75,7 +97,29 @@ const Index = () => {
       const { data, error } = await queryBuilder.order('title', { ascending: true });
 
       if (error) throw error;
-      setBooks(data || []);
+
+      // Fetch review statistics for search results
+      const booksWithReviews = await Promise.all(
+        (data || []).map(async (book) => {
+          const { data: reviewsData } = await supabase
+            .from('reviews')
+            .select('rating')
+            .eq('book_id', book.id);
+
+          const reviewCount = reviewsData?.length || 0;
+          const averageRating = reviewCount > 0
+            ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / reviewCount
+            : 0;
+
+          return {
+            ...book,
+            reviewCount,
+            averageRating,
+          };
+        })
+      );
+
+      setBooks(booksWithReviews);
       
       if (data?.length === 0) {
         toast({
