@@ -20,6 +20,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { BookReviews } from '@/components/BookReviews';
 
 const BookDetail = () => {
   const { id } = useParams();
@@ -351,6 +352,8 @@ const BookDetail = () => {
                     </div>
                   </>
                 )}
+
+                <BookReviews bookId={book.id} />
               </CardContent>
             </Card>
           </div>
