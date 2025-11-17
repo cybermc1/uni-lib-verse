@@ -224,7 +224,7 @@ const BookDetail = () => {
                     </Button>
                   )}
 
-                  {hasOnlineAccess && (
+                  {hasOnlineAccess && book.pdf_url && (
                     <Button onClick={handleViewOnline} variant="outline" className="w-full">
                       <Eye className="mr-2 h-4 w-4" />
                       View Online
