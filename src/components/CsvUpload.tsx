@@ -13,20 +13,47 @@ const bookSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(255),
   author: z.string().trim().min(1, 'Author is required').max(255),
   publisher: z.string().trim().min(1, 'Publisher is required').max(255),
-  isbn: z.string().trim().optional(),
-  publication_year: z.coerce.number().int().min(1000).max(new Date().getFullYear() + 1).optional(),
+  isbn: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : String(val),
+    z.string().optional()
+  ),
+  publication_year: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.coerce.number().int().min(1000).max(new Date().getFullYear() + 1).optional()
+  ),
   type: z.enum(['book', 'magazine', 'journal', 'research_paper', 'thesis']).default('book'),
   access_type: z.enum(['physical_only', 'online_only', 'both']).default('physical_only'),
   total_copies: z.coerce.number().int().min(1).default(1),
   available_copies: z.coerce.number().int().min(0).default(1),
-  description: z.string().trim().max(2000).optional(),
+  description: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.string().trim().max(2000).optional()
+  ),
   language: z.string().trim().max(50).default('English'),
-  edition: z.string().trim().max(50).optional(),
-  pages: z.coerce.number().int().min(1).optional(),
-  topics: z.string().transform(val => val ? val.split(';').map(t => t.trim()).filter(Boolean) : []).optional(),
-  tags: z.string().transform(val => val ? val.split(';').map(t => t.trim()).filter(Boolean) : []).optional(),
-  pdf_url: z.string().url().optional().or(z.literal('')),
-  cover_image_url: z.string().url().optional().or(z.literal('')),
+  edition: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.string().trim().max(50).optional()
+  ),
+  pages: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.coerce.number().int().min(1).optional()
+  ),
+  topics: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.string().transform(val => val ? val.split(';').map(t => t.trim()).filter(Boolean) : []).optional()
+  ),
+  tags: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.string().transform(val => val ? val.split(';').map(t => t.trim()).filter(Boolean) : []).optional()
+  ),
+  pdf_url: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.string().url().optional()
+  ),
+  cover_image_url: z.preprocess(
+    val => val === '' || val === null || val === undefined ? undefined : val,
+    z.string().url().optional()
+  ),
   requires_approval: z.coerce.boolean().default(false),
   max_borrow_days: z.coerce.number().int().min(1).max(365).default(14),
 });
