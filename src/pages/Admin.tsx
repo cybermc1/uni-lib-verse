@@ -26,6 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { CsvUpload } from "@/components/CsvUpload";
 
 const Admin = () => {
   const { user, userRole } = useAuth();
@@ -201,7 +202,11 @@ const Admin = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Admin Panel</h1>
-          <p className="text-muted-foreground">Manage user roles and permissions</p>
+          <p className="text-muted-foreground">Manage books catalog and user roles</p>
+        </div>
+
+        <div className="mb-8">
+          <CsvUpload />
         </div>
 
         <Card>
