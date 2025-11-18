@@ -146,6 +146,7 @@ const Index = () => {
       );
 
       setBooks(booksWithReviews);
+      setTotalCount(booksWithReviews.length);
       
       if (data?.length === 0) {
         toast({
