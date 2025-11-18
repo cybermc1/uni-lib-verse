@@ -93,10 +93,11 @@ export const CsvUpload = () => {
         const validBooks: any[] = [];
 
         // Validate each row
+        const validBooksWithRowNum: Array<{ book: any; rowNum: number }> = [];
         parseResult.data.forEach((row: any, index: number) => {
           try {
             const validatedBook = bookSchema.parse(row);
-            validBooks.push(validatedBook);
+            validBooksWithRowNum.push({ book: validatedBook, rowNum: index + 2 });
           } catch (error: any) {
             if (error instanceof z.ZodError) {
               const rowErrors = error.errors.map(e => `Row ${index + 2}: ${e.path.join('.')} - ${e.message}`);
@@ -107,19 +108,29 @@ export const CsvUpload = () => {
           }
         });
 
-        // Insert valid books
+        // Insert valid books one by one to track which row fails
         let successCount = 0;
-        if (validBooks.length > 0) {
+        for (const { book, rowNum } of validBooksWithRowNum) {
           try {
-            const { data, error } = await supabase
+            const { error } = await supabase
               .from('books')
-              .insert(validBooks)
-              .select();
+              .insert(book);
 
             if (error) throw error;
-            successCount = data?.length || 0;
+            successCount++;
           } catch (error: any) {
-            errors.push(`Database error: ${error.message}`);
+            // Handle specific database errors with helpful messages
+            if (error.code === '23505') {
+              // Unique constraint violation
+              const match = error.message.match(/Key \((\w+)\)=\(([^)]+)\)/);
+              if (match) {
+                errors.push(`Row ${rowNum}: Duplicate ${match[1]} value "${match[2]}" already exists in database`);
+              } else {
+                errors.push(`Row ${rowNum}: Duplicate value violates unique constraint`);
+              }
+            } else {
+              errors.push(`Row ${rowNum}: Database error - ${error.message}`);
+            }
           }
         }
 
