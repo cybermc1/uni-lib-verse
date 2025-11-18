@@ -124,7 +124,9 @@ export const CsvUpload = () => {
               // Unique constraint violation
               const match = error.message.match(/Key \((\w+)\)=\(([^)]+)\)/);
               if (match) {
-                errors.push(`Row ${rowNum}: Duplicate ${match[1]} value "${match[2]}" already exists in database`);
+                const fieldName = match[1].toUpperCase();
+                const fieldValue = match[2];
+                errors.push(`Row ${rowNum}: Field "${fieldName}" has duplicate value "${fieldValue}" - this value already exists in the database`);
               } else {
                 errors.push(`Row ${rowNum}: Duplicate value violates unique constraint`);
               }
