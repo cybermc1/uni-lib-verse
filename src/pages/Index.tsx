@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { SearchBar } from '@/components/SearchBar';
@@ -6,6 +6,14 @@ import { BookCard } from '@/components/BookCard';
 import { supabase } from '@/integrations/supabase/client';
 import { BookOpen, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -13,19 +21,33 @@ const Index = () => {
   const [books, setBooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const ITEMS_PER_PAGE = 12;
 
   useEffect(() => {
     fetchBooks();
   }, []);
 
-  const fetchBooks = async () => {
+  const fetchBooks = async (page = 1) => {
     setLoading(true);
     try {
+      // Get total count
+      const { count } = await supabase
+        .from('books')
+        .select('*', { count: 'exact', head: true });
+
+      setTotalCount(count || 0);
+
+      // Fetch paginated books
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+
       const { data: booksData, error } = await supabase
         .from('books')
         .select('*')
         .order('title', { ascending: true })
-        .limit(12);
+        .range(from, to);
 
       if (error) throw error;
 
@@ -51,6 +73,7 @@ const Index = () => {
       );
 
       setBooks(booksWithReviews);
+      setCurrentPage(page);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -64,9 +87,12 @@ const Index = () => {
 
   const handleSearch = async (query: string, searchType: string) => {
     if (!query.trim()) {
-      fetchBooks();
+      setCurrentPage(1);
+      fetchBooks(1);
       return;
     }
+    
+    setCurrentPage(1);
 
     setSearching(true);
     try {
@@ -193,11 +219,86 @@ const Index = () => {
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {books.map((book) => (
-                <BookCard key={book.id} book={book} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {books.map((book) => (
+                  <BookCard key={book.id} book={book} />
+                ))}
+              </div>
+
+              {!searching && totalCount > ITEMS_PER_PAGE && (
+                <div className="mt-12">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => {
+                            if (currentPage > 1) {
+                              fetchBooks(currentPage - 1);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        />
+                      </PaginationItem>
+
+                      {Array.from({ length: Math.ceil(totalCount / ITEMS_PER_PAGE) }, (_, i) => i + 1)
+                        .filter((page) => {
+                          const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+                          // Show first page, last page, current page, and adjacent pages
+                          return (
+                            page === 1 ||
+                            page === totalPages ||
+                            (page >= currentPage - 1 && page <= currentPage + 1)
+                          );
+                        })
+                        .map((page, index, array) => {
+                          // Add ellipsis if there's a gap
+                          const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+                          
+                          return (
+                            <React.Fragment key={page}>
+                              {showEllipsisBefore && (
+                                <PaginationItem>
+                                  <span className="px-4">...</span>
+                                </PaginationItem>
+                              )}
+                              <PaginationItem>
+                                <PaginationLink
+                                  onClick={() => {
+                                    fetchBooks(page);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                  }}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            </React.Fragment>
+                          );
+                        })}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => {
+                            if (currentPage < Math.ceil(totalCount / ITEMS_PER_PAGE)) {
+                              fetchBooks(currentPage + 1);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className={
+                            currentPage >= Math.ceil(totalCount / ITEMS_PER_PAGE)
+                              ? 'pointer-events-none opacity-50'
+                              : 'cursor-pointer'
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>
