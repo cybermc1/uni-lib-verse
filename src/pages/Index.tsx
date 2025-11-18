@@ -226,7 +226,7 @@ const Index = () => {
                 ))}
               </div>
 
-              {!searching && totalCount > ITEMS_PER_PAGE && (
+              {!searching && totalCount > ITEMS_PER_PAGE && books.length > 0 && (
                 <div className="mt-12">
                   <Pagination>
                     <PaginationContent>
