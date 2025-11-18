@@ -121,14 +121,29 @@ export const CsvUpload = () => {
           } catch (error: any) {
             // Handle specific database errors with helpful messages
             if (error.code === '23505') {
-              // Unique constraint violation
-              const match = error.message.match(/Key \((\w+)\)=\(([^)]+)\)/);
-              if (match) {
-                const fieldName = match[1].toUpperCase();
-                const fieldValue = match[2];
-                errors.push(`Row ${rowNum}: Field "${fieldName}" has duplicate value "${fieldValue}" - this value already exists in the database`);
+              // Unique constraint violation: try to extract field and value
+              const detailSource = error?.details || error?.hint || error?.message || '';
+              const pairMatch = detailSource.match(/Key \(([^)]+)\)=\(([^)]+)\)/);
+
+              if (pairMatch) {
+                const fields = pairMatch[1].split(',').map((s) => s.trim());
+                const values = pairMatch[2].split(',').map((s) => s.trim());
+                const pairs = fields.map((f, i) => `${f.toUpperCase()}="${values[i] ?? ''}"`).join(', ');
+                errors.push(`Row ${rowNum}: Duplicate value for ${pairs} - already exists in the database`);
               } else {
-                errors.push(`Row ${rowNum}: Duplicate value violates unique constraint`);
+                // Fallback: infer from constraint name or use provided CSV value
+                let inferredField: string | null = null;
+                const constraintMatch = (error?.message || '').match(/unique constraint "([^"]+)"/);
+                if (constraintMatch) {
+                  const constraint = constraintMatch[1];
+                  const knownColumns = ['isbn','title','author','publisher'];
+                  inferredField = knownColumns.find((c) => constraint.includes(`_${c}_`)) || null;
+                }
+                if (!inferredField && book?.isbn) inferredField = 'isbn';
+                const valueHint = inferredField ? String((book as any)[inferredField] ?? '') : '';
+                const fieldLabel = (inferredField || 'unknown field').toUpperCase();
+                const valueLabel = valueHint ? ` "${valueHint}"` : '';
+                errors.push(`Row ${rowNum}: Duplicate ${fieldLabel}${valueLabel} - already exists in the database`);
               }
             } else {
               errors.push(`Row ${rowNum}: Database error - ${error.message}`);
