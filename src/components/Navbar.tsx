@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { BookOpen, User, LogOut, LayoutDashboard, Shield, BookCheck, Library, UserCog } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ export function Navbar() {
           </Link>
 
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             {user ? (
               <>
                 {userRole === 'admin' && (
