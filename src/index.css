@@ -8,44 +8,44 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Monochromatic light theme - Grays */
+    /* IBM Carbon Design System - Light Theme */
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --foreground: 240 1% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 240 1% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 240 1% 9%;
 
-    --primary: 0 0% 20%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 216 98% 52%;
+    --primary-foreground: 0 0% 100%;
     
-    --primary-dark: 0 0% 10%;
-    --primary-light: 0 0% 40%;
+    --primary-dark: 217 95% 45%;
+    --primary-light: 216 98% 60%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 240 1% 9%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 13% 91%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 216 98% 52%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 2 90% 53%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 20%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 216 98% 52%;
 
-    --radius: 0.75rem;
+    --radius: 0rem;
     
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(0 0% 30%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(0 0% 20%) 0%, hsl(0 0% 40%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(0 0% 25%) 0%, hsl(0 0% 35%) 100%);
+    /* IBM Carbon gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(216 98% 52%) 0%, hsl(216 98% 60%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(217 95% 45%) 0%, hsl(216 98% 52%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(220 9% 46%) 0%, hsl(220 13% 91%) 100%);
 
     --sidebar-background: 0 0% 98%;
 
