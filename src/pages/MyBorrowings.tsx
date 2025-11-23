@@ -120,6 +120,51 @@ const MyBorrowings = () => {
     }
   };
 
+  const handleRequestRenewal = async (recordId: string, bookTitle: string) => {
+    try {
+      const { data: record, error: fetchError } = await supabase
+        .from('borrowing_records')
+        .select('renewal_count')
+        .eq('id', recordId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const renewalCount = record.renewal_count || 0;
+      if (renewalCount >= 2) {
+        toast({
+          title: 'Renewal Limit Reached',
+          description: 'You have reached the maximum number of renewals for this book.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const { error: updateError } = await supabase
+        .from('borrowing_records')
+        .update({
+          renewal_count: renewalCount + 1,
+          due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+        .eq('id', recordId);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: 'Renewal Successful',
+        description: `"${bookTitle}" has been renewed for 14 more days.`,
+      });
+
+      fetchMyBorrowings();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to renew book',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusBadge = (status: string, dueDate?: string) => {
     const isOverdue = dueDate && new Date(dueDate) < new Date() && status === 'active';
     
@@ -163,16 +208,16 @@ const MyBorrowings = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 max-w-2xl">
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
-            <TabsTrigger value="returned">Returned</TabsTrigger>
-            <TabsTrigger value="all">All</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 max-w-2xl rounded-2xl">
+            <TabsTrigger value="pending" className="rounded-2xl">Pending</TabsTrigger>
+            <TabsTrigger value="active" className="rounded-2xl">Active</TabsTrigger>
+            <TabsTrigger value="returned" className="rounded-2xl">Returned</TabsTrigger>
+            <TabsTrigger value="all" className="rounded-2xl">All</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-4 mt-6">
             {borrowings.length === 0 ? (
-              <Card>
+              <Card className="rounded-2xl">
                 <CardContent className="py-12 text-center">
                   <p className="text-muted-foreground">No borrowing records found</p>
                 </CardContent>
@@ -182,7 +227,7 @@ const MyBorrowings = () => {
                 const isOverdue = record.due_date && new Date(record.due_date) < new Date() && record.status === 'active';
                 
                 return (
-                  <Card key={record.id} className={isOverdue ? 'border-destructive' : ''}>
+                  <Card key={record.id} className={`rounded-2xl ${isOverdue ? 'border-destructive' : ''}`}>
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -260,7 +305,13 @@ const MyBorrowings = () => {
                       )}
 
                       {record.status === 'active' && (
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            onClick={() => handleRequestRenewal(record.id, record.book?.title)}
+                            variant="outline"
+                          >
+                            Request Renewal
+                          </Button>
                           <Button
                             onClick={() => setConfirmReturn({ 
                               recordId: record.id, 
