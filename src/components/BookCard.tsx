@@ -31,7 +31,7 @@ export function BookCard({ book }: BookCardProps) {
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="p-0">
-        <div className="h-48 bg-gradient-to-br from-primary-light to-primary rounded-t-lg flex items-center justify-center relative overflow-hidden">
+        <div className="h-48 bg-gradient-to-br from-primary-light to-primary rounded-t-2xl flex items-center justify-center relative overflow-hidden">
           {book.cover_image_url ? (
             <img src={book.cover_image_url} alt={book.title} className="h-full w-full object-cover" />
           ) : (
